@@ -167,8 +167,12 @@
                 "title": "weAudit: Mark File as Reviewed"
             },
             {
-                "command": "weAudit.toggleUriAudited",
+                "command": "weAudit.toggleFileAudited",
                 "title": "weAudit: Mark File as Reviewed"
+            },
+            {
+                "command": "weAudit.toggleFolderAudited",
+                "title": "weAudit: Mark entire Folder as Reviewed"
             },
             {
                 "command": "weAudit.addPartiallyAudited",
@@ -398,8 +402,14 @@
             ],
             "explorer/context": [
                 {
-                    "command": "weAudit.toggleUriAudited",
-                    "group": "2_workspace"
+                    "command": "weAudit.toggleFileAudited",
+                    "group": "2_workspace",
+                    "when": "!explorerResourceIsFolder && resourceScheme == file"
+                },
+                {
+                    "command": "weAudit.toggleFolderAudited",
+                    "group": "2_workspace",
+                    "when": "explorerResourceIsFolder && resourceScheme == file"
                 }
             ]
         },

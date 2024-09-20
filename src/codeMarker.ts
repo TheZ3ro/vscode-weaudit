@@ -122,8 +122,12 @@ export class CodeMarker implements vscode.TreeDataProvider<TreeEntry> {
             this.toggleAudited();
         });
 
-        vscode.commands.registerCommand("weAudit.toggleUriAudited", (uri: vscode.Uri) => {
-            this.toggleUriAudited(uri);
+        vscode.commands.registerCommand("weAudit.toggleFileAudited", (uri: vscode.Uri) => {
+            this.toggleFileAudited(uri);
+        });
+
+        vscode.commands.registerCommand("weAudit.toggleFolderAudited", (uri: vscode.Uri) => {
+            this.toggleFolderAudited(uri);
         });
 
         vscode.commands.registerCommand("weAudit.addPartiallyAudited", () => {
@@ -600,15 +604,14 @@ export class CodeMarker implements vscode.TreeDataProvider<TreeEntry> {
             return;
         }
         const uri = editor.document.uri;
-        this.toggleUriAudited(uri);
+        this.toggleFileAudited(uri);
     }
 
     /**
-     * Toggles the a URI as audited or not audited.
+     * Toggles a File as audited or not audited.
+     * @param uri The URI of the file that need to be toggled
      */
-    toggleUriAudited(uri: vscode.Uri): void {
-        let logger = vscode.window.createOutputChannel("weAudit");
-        logger.appendLine(JSON.stringify(uri.toJSON()));
+    toggleFileAudited(uri: vscode.Uri): void {
 
         // get path relative to workspace
         const relativePath = path.relative(this.workspacePath, uri.fsPath);
@@ -639,6 +642,57 @@ export class CodeMarker implements vscode.TreeDataProvider<TreeEntry> {
         this.decorateWithUri(uri);
         this.updateSavedData(relevantUsername);
         this.refresh(uri);
+    }
+
+    /**
+     * Toggles a Folder as audited or not audited.
+     * @param uri The URI of the folder that need to be toggled
+     */
+    toggleFolderAudited(uri: vscode.Uri): void {
+        // get path relative to workspace
+        const relativeFolderPath = path.relative(this.workspacePath, uri.fsPath);
+        // iterate over all the files in the folder
+        const files = fs.readdirSync(uri.fsPath);
+
+        let relevantUsername;
+        // check if folder is already in list
+        const index = this.auditedFiles.findIndex((file) => file.path === relativeFolderPath);
+        if (index > -1) {
+            // if it exists, remove it
+            const auditedEntry = this.auditedFiles.splice(index, 1);
+            relevantUsername = auditedEntry[0].author;
+            // remove every contained file
+            for (const file of files) {
+                const relativePath = path.relative(this.workspacePath, path.join(uri.fsPath, file));
+                const index = this.auditedFiles.findIndex((file) => file.path === relativePath)
+                this.auditedFiles.splice(index, 1);
+            }
+        } else {
+            // if it doesn't exist, add it
+            this.auditedFiles.push({ path: relativeFolderPath, author: this.username });
+            relevantUsername = this.username;
+            // add every contained file
+            for (const file of files) {
+                const relativePath = path.relative(this.workspacePath, path.join(uri.fsPath, file));
+                this.auditedFiles.push({ path: relativePath, author: this.username });
+            }
+        }
+
+        // clean out any partially audited file entries
+        this.cleanPartialAudits(uri);
+
+        // update day log structure
+        const isAdd = index === -1;
+        this.updateDayLog(relativeFolderPath, isAdd);
+        this.updateSavedData(relevantUsername);
+        this.refreshAndDecorateFromPath(relativeFolderPath);
+
+        // update decorations for every single file that was affected
+        for (const file of files) {
+            const relativePath = path.relative(this.workspacePath, path.join(uri.fsPath, file));
+            this.updateDayLog(relativePath, isAdd);
+            this.refreshAndDecorateFromPath(relativePath)
+        } 
     }
 
     addPartiallyAudited(): void {
