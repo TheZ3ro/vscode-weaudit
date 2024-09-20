@@ -167,6 +167,10 @@
                 "title": "weAudit: Mark File as Reviewed"
             },
             {
+                "command": "weAudit.toggleUriAudited",
+                "title": "weAudit: Mark File as Reviewed"
+            },
+            {
                 "command": "weAudit.addPartiallyAudited",
                 "title": "weAudit: Mark Region as Reviewed"
             },
@@ -381,7 +385,7 @@
             "editor/context": [
                 {
                     "command": "weAudit.toggleAudited",
-                    "group": "1_modification@0"
+                    "group": "1_modification"
                 },
                 {
                     "command": "weAudit.copySelectedCodePermalink",
@@ -390,6 +394,12 @@
                 {
                     "command": "weAudit.copySelectedCodeClientPermalink",
                     "group": "9_cutcopypaste@0"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "weAudit.toggleUriAudited",
+                    "group": "2_workspace"
                 }
             ]
         },

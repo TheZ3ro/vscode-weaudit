@@ -122,6 +122,10 @@ export class CodeMarker implements vscode.TreeDataProvider<TreeEntry> {
             this.toggleAudited();
         });
 
+        vscode.commands.registerCommand("weAudit.toggleUriAudited", (uri: vscode.Uri) => {
+            this.toggleUriAudited(uri);
+        });
+
         vscode.commands.registerCommand("weAudit.addPartiallyAudited", () => {
             this.addPartiallyAudited();
         });
@@ -596,6 +600,16 @@ export class CodeMarker implements vscode.TreeDataProvider<TreeEntry> {
             return;
         }
         const uri = editor.document.uri;
+        this.toggleUriAudited(uri);
+    }
+
+    /**
+     * Toggles the a URI as audited or not audited.
+     */
+    toggleUriAudited(uri: vscode.Uri): void {
+        let logger = vscode.window.createOutputChannel("weAudit");
+        logger.appendLine(JSON.stringify(uri.toJSON()));
+
         // get path relative to workspace
         const relativePath = path.relative(this.workspacePath, uri.fsPath);
 
